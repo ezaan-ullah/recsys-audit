@@ -1,0 +1,31 @@
+# Study configuration. Changing anything under `policy`, or either keyword file,
+# changes the policy fingerprint written into every logged row.
+study:
+  seed: 20260927
+  items_per_session: 70
+  concurrency: 4                  # accounts running at the same time
+
+policy:
+  skip_dwell_s: [2.0, 4.0]        # uniform range for skipped items
+  long_dwell_cap_s: 45            # long dwell = min(video length, cap) + jitter
+  long_dwell_jitter_s: [0.0, 2.0]
+  neutral_long_prob: 0.15         # set from the dry run, then freeze
+
+keywords:
+  adjacent: keywords/adjacent.txt
+  exclude: keywords/exclude.txt
+
+browser:
+  channel: chrome                 # real Chrome; `playwright install chrome` if missing
+  profiles_dir: profiles
+  blur: all                       # all | media | none  (what the researcher sees on screen)
+  mute: true
+  viewport: [1280, 800]
+
+paths:
+  accounts: accounts.yaml
+  data_dir: data
+  meta_cache: data/meta_cache.jsonl
+
+youtube:
+  api_key_env: YT_API_KEY

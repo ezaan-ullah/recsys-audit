@@ -1,0 +1,22 @@
+# TREATMENT TRIGGER: mental-health-adjacent terms. Treatment accounts linger
+# on items whose title, description, or tags match one of these.
+# One term per line, case-insensitive, whole-word match. Omit the leading '#'
+# for hashtags; add concatenated hashtag forms explicitly (e.g. sadedit).
+# Add terms in any other language or script your feeds show (matching is Unicode-aware).
+# Freeze this file before the real run: it is part of the policy fingerprint.
+sad
+sadness
+sad edit
+sadedit
+lonely
+loneliness
+depressed
+depression
+anxiety
+heartbreak
+heartbroken
+crying
+numb
+overthinking
+mental health
+feeling empty

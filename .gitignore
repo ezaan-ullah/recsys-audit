@@ -1,0 +1,5 @@
+# Browser profiles hold live Google session cookies. Never commit or share them.
+profiles/
+data/
+.env
+__pycache__/

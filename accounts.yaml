@@ -1,0 +1,14 @@
+# One entry per sock-puppet account. `group` is filled in by assign_groups.py.
+accounts:
+  - {id: acct01, group: null}
+  - {id: acct02, group: null}
+  - {id: acct03, group: null}
+  - {id: acct04, group: null}
+  - {id: acct05, group: null}
+  - {id: acct06, group: null}
+  - {id: acct07, group: null}
+  - {id: acct08, group: null}
+  - {id: acct09, group: null}
+  - {id: acct10, group: null}
+  - {id: acct11, group: null}
+  - {id: acct12, group: null}

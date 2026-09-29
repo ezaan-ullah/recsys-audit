@@ -1,0 +1,15 @@
+# EXCLUSION: treatment accounts SKIP any item matching these, even if it also
+# matches an adjacent term. The bot then never seeks out harmful content itself,
+# so any drift toward it comes from the recommender.
+# This is a behavioral safeguard, NOT the measurement: exposure is measured
+# later by the offline labeling pipeline.
+suicide
+suicidal
+self harm
+self-harm
+selfharm
+kill myself
+killing myself
+end my life
+want to die
+unalive
