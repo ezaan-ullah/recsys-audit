@@ -1,22 +1,110 @@
-# TREATMENT TRIGGER: mental-health-adjacent terms. Treatment accounts linger
-# on items whose title, description, or tags match one of these.
-# One term per line, case-insensitive, whole-word match. Omit the leading '#'
-# for hashtags; add concatenated hashtag forms explicitly (e.g. sadedit).
-# Add terms in any other language or script your feeds show (matching is Unicode-aware).
-# Freeze this file before the real run: it is part of the policy fingerprint.
+# TRIGGER FALLBACK: mental-health-adjacent terms. Used only when Gemini does not answer
+# in time (the row's trigger_source says so). Matched against title, description, tags.
+# One term per line, case-insensitive. Word-like terms match whole words; emoji match anywhere.
+# Hashtags: the '#' is ignored, so list concatenated forms explicitly (sadstatus).
+# Parsed terms are part of the protocol fingerprint (comments are not). Precision and
+# recall are measured against the human gold set by validate_labels.py.
+
+# English
 sad
 sadness
 sad edit
 sadedit
+sad status
+sadstatus
+sad song
+sadsong
+sad shayari
+sadshayari
+sad poetry
+sadpoetry
+sad quotes
+sadquotes
+sad lines
 lonely
 loneliness
+alone forever
 depressed
 depression
 anxiety
 heartbreak
 heartbroken
+broken heart
+brokenheart
+heart broken
 crying
 numb
 overthinking
 mental health
 feeling empty
+hopeless
+emotional pain
+
+# Roman Urdu / Hindi
+udaas
+udas
+udaasi
+dukhi
+dukh bhari
+tanhai
+tanhaai
+tanha
+akela
+akelapan
+dard
+dard bhari
+dardbhari
+dard bhari shayari
+dil toota
+dil tuta
+toota dil
+tuta dil
+dil tut gaya
+bewafa
+bewafai
+aansu
+ansu
+rona aa gaya
+gham
+
+# Urdu script
+اداس
+اداسی
+دکھ
+دکھی
+تنہائی
+تنہا
+اکیلا
+اکیلاپن
+درد
+غم
+آنسو
+بے وفا
+بےوفا
+ٹوٹا دل
+دل ٹوٹا
+ڈپریشن
+
+# Hindi (Devanagari)
+उदास
+उदासी
+दुख
+दुखी
+तन्हाई
+तन्हा
+अकेला
+अकेलापन
+दर्द
+ग़म
+आंसू
+आँसू
+बेवफा
+बेवफ़ा
+डिप्रेशन
+
+# Emoji (deliberately excluded: 😭 is mostly laughter; ❤️‍🩹 is mostly kindness edits)
+💔
+🥀
+😞
+😔
+😢

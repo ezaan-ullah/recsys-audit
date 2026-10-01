@@ -1,0 +1,5 @@
+# SEED LIST (treatment arm). One YouTube Short video ID per line; text after the ID is ignored.
+# Watched to completion, by direct URL, in session 3 (phase: seed) by every treatment account.
+# Must be mental-health-ADJACENT (sad, lonely, heartbreak) and never harmful.
+# Build candidates with build_seeds.py, review them, then paste the chosen IDs here.
+# Both lists must have the same length. Parsed IDs are part of the protocol fingerprint.

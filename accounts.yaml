@@ -1,14 +1,12 @@
-# One entry per sock-puppet account. `group` is filled in by assign_groups.py.
+# One entry per sock-puppet account.
+#   role: pilot (dry runs only) | study (real runs only)
+#   pair/group: filled by assign_groups.py for study accounts; fixed here for the pilot pair
+#   persona fields: what was declared at sign-up (keep them identical across study accounts)
+#   datasync_id: filled by login.py; sessions abort if a different account is signed in
+#   history_reset_utc: set if watch/search history was cleared before the study
+# acct01/acct02 already hold dry-run watch history, so they are permanently pilot accounts.
+# Add your fresh study accounts below (an even number), e.g.
+#   - {id: acct03, role: study, pair: null, group: null, birth_year: 2000, gender: female, created: 2026-10-01, ui_language: en, datasync_id: null, history_reset_utc: null}
 accounts:
-  - {id: acct01, group: null}
-  - {id: acct02, group: null}
-  - {id: acct03, group: null}
-  - {id: acct04, group: null}
-  - {id: acct05, group: null}
-  - {id: acct06, group: null}
-  - {id: acct07, group: null}
-  - {id: acct08, group: null}
-  - {id: acct09, group: null}
-  - {id: acct10, group: null}
-  - {id: acct11, group: null}
-  - {id: acct12, group: null}
+- {id: acct01, role: pilot, pair: pilot, group: treatment, birth_year: null, gender: null, created: null, ui_language: en, datasync_id: 100134246305351991804||, history_reset_utc: null}
+- {id: acct02, role: pilot, pair: pilot, group: control, birth_year: null, gender: null, created: null, ui_language: en, datasync_id: null, history_reset_utc: null}

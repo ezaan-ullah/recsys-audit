@@ -1,31 +1,82 @@
-# Study configuration. Changing anything under `policy`, or either keyword file,
-# changes the policy fingerprint written into every logged row.
+# Study configuration. Everything under study.seed/items_per_session, policy, yoke,
+# classifier.model/prompt, the keyword and seed files, protocol.yaml, and the
+# procedure's source code feeds the protocol fingerprint (policy_fp) in every row.
+
+# Set this to the policy_fp printed by the last pilot run, then pre-register it.
+# Real (non-dry) runs refuse to start until it matches.
+preregistered_fp: null
+
 study:
   seed: 20260927
-  items_per_session: 70
-  concurrency: 4                  # accounts running at the same time
+  items_per_session: 70           # organic (non-ad) items per feed session
+  max_pairs_in_flight: 2          # browser load: each pair is 2 Chrome windows
 
 policy:
-  skip_dwell_s: [2.0, 4.0]        # uniform range for skipped items
-  long_dwell_cap_s: 45            # long dwell = min(video length, cap) + jitter
+  skip_dwell_s: [3.0, 5.0]        # uniform; must start above decision_deadline_s
+  long_dwell_floor_s: 10          # long dwell = clamp(player duration, floor, cap) + jitter
+  long_dwell_cap_s: 45
   long_dwell_jitter_s: [0.0, 2.0]
-  neutral_long_prob: 0.15         # set from the dry run, then freeze
+  neutral_long_prob: 0.15         # baseline/washout: content-blind long-dwell rate (pre-registered constant)
+  decision_deadline_s: 2.5        # trigger must decide within this many seconds of playback start
+  seed_dwell_cap_s: 90            # seed videos are watched to completion, up to this cap
+
+yoke:
+  control_start_delay_s: 15       # control starts after its treatment partner, so it rarely waits
+  partner_timeout_s: 240          # control gives up if its partner has not decided item k by then
+
+classifier:
+  enabled: true
+  api_key_env: GEMINI_API_KEY
+  model: gemini-3.1-flash-lite                     # REQUIRED: a Flash-Lite/Flash model id from your AI Studio project
+  thinking_budget: 0              # 0 = no thinking (fast); null = model default
+  prompt: prompts/trigger_v1.md
+  rpm: 15                         # your project's requests/minute for this model (AI Studio)
+  rpd: 1000                       # your project's requests/day for this model
+  per_treatment_account_rpm: 13   # worst-case request rate of one treatment account
+  min_gemini_rate: 0.9            # sessions where Gemini decided less than this share are flagged
+
+labeler:  
+  api_key_env: GEMINI_API_KEY
+  model: gemini-3.1-flash-lite                     # offline outcome labeling; may be a stronger model than the trigger
+  thinking_budget: null
+  prompt: prompts/outcome_v1.md
+  codebook: docs/codebook.md
+  rpm: 15
+  rpd: 500
 
 keywords:
   adjacent: keywords/adjacent.txt
   exclude: keywords/exclude.txt
 
+seeds:
+  treatment: seeds/treatment.txt
+  control: seeds/control.txt
+
+checks:
+  history_page: true              # abort if YouTube watch history is off
+
 browser:
   channel: chrome                 # real Chrome; `playwright install chrome` if missing
   profiles_dir: profiles
-  blur: all                       # all | media | none  (what the researcher sees on screen)
-  mute: true
+  screen: overlay                 # overlay | blur | media | none  (what the researcher sees)
+  mute: true                      # browser-level mute: the page still sees an unmuted player
   viewport: [1280, 800]
 
 paths:
   accounts: accounts.yaml
+  protocol: protocol.yaml
   data_dir: data
   meta_cache: data/meta_cache.jsonl
+  trigger_cache: data/trigger_cache.jsonl
+  media_dir: data/media
+  labels_dir: data/labels
+  reports_dir: reports
+  gemini_usage: data/gemini_usage.json
+  lab_log: data/lab_log.jsonl
 
 youtube:
   api_key_env: YT_API_KEY
+
+analysis:
+  drift_margin: 0.05              # drift = treatment-minus-control share exceeds baseline max by this much
+  position_bin: 10

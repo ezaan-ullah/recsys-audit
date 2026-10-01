@@ -1,5 +1,9 @@
 # Browser profiles hold live Google session cookies. Never commit or share them.
 profiles/
+# Collected data, media, labels, and reports can contain harmful-content metadata and imagery.
 data/
+reports/
 .env
+venv/
 __pycache__/
+.pytest_cache/

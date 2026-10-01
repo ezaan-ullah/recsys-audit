@@ -1,107 +1,167 @@
-# Short-video recommendation audit: collection harness
+# Short-video recommendation audit (YouTube Shorts MVP)
 
-Sock-puppet harness for YouTube Shorts. Each account scrolls its Shorts feed and
-lingers (or doesn't) on each item according to a fixed, logged policy. It records
-every item it is shown. Exposure is measured later, offline, by the labeling pipeline.
+An external black-box audit of a short-video feed using sock-puppet accounts. Each account
+sends one controlled signal, watch time, and we measure how fast and how strongly the feed
+shifts toward sadness and mental-health content, and whether it escalates toward harmful
+content the accounts never lingered on.
 
-## Design guarantees
+## Design
 
-**Passive only.** The bot never likes, comments, shares, follows, subscribes, or
-searches. Watch time is its only signal, so the study never boosts real creators' content.
+- **Yoked pairs.** Fresh accounts are randomly paired; one member of each pair is treatment,
+  the other control. Partners run at the same time, from the same machine, with identical
+  random draws.
+- **Phases** (`protocol.yaml`, ~4 days at 3 slots/day):
+  baseline ×2 → seed ×1 → treatment ×6 → washout ×2.
+  - *Baseline and washout:* both partners follow the same content-blind dwell schedule.
+  - *Seed:* treatment watches a frozen list of ~10 sad/lonely Shorts; control watches a
+    duration-matched neutral list. Opened by direct URL; no searching.
+  - *Treatment:* the treatment account lingers on mental-health-adjacent items, decided
+    live by Gemini with a multilingual keyword fallback. The control lingers exactly where
+    its partner lingered (yoked), so watch time, timing, and network are matched and only
+    the **content** lingered on differs.
+- **Outcome.** The share of served items with a sadness or mental-health theme, and the
+  share that is harmful. It is labeled offline with a codebook (`docs/codebook.md`) and
+  validated against two human labelers.
 
-**Treatment never seeks harm.** Treatment accounts linger only on mental-health-adjacent
-items (`keywords/adjacent.txt`) and always skip items matching `keywords/exclude.txt`.
-Any drift toward harmful content therefore comes from the recommender, not the bot.
+## Guarantees
 
-**Controls ignore content.** Neutral mode chooses dwell from a fixed probability that
-never looks at the item. Both modes use identical random draws per item (tested).
+- **Passive only.** The bot never likes, comments, shares, follows, subscribes, or searches.
+- **Symmetric safety rule.** No account, in any arm or phase, lingers on suicide or
+  self-harm content: a keyword exclude match, a Gemini `harmful` label, or a Gemini
+  refusal all lead to a skip. Any drift toward such content therefore comes from the
+  recommender.
+- **Frozen, provable procedure.** Every row carries `policy_fp`, a hash of the policy,
+  protocol, keyword terms, seed lists, classifier model and prompt, the procedure's source
+  code, and `requirements.lock`. Real runs refuse to start unless it equals
+  `preregistered_fp` in `config.yaml`.
+- **Every decision is logged.** For each item the row records:
+  - which source decided (`gemini` or a `keyword_*` fallback, with the reason)
+  - what the player actually did (`watched_s`, `loops`, `playing_frac`, `muted`)
+  - whether it was an ad
+  - any warning screen or crisis panel YouTube showed (`interstitial`)
+- **Researcher protection.** Windows are covered by an opaque overlay and audio is muted at
+  the browser level. Images in the review and labeling pages stay blurred until clicked.
 
-**Frozen, provable policy.** Every row carries `policy_fp`, a hash of the policy
-settings and both keyword files. Pre-register that value and it shows the treatment
-rule never changed.
+## Setup
 
-**Researcher protection.** Pages are blurred and muted on your screen (`browser.blur`).
-The video still plays normally, so the platform sees ordinary viewing.
+    uv pip install -r requirements.lock     # or: pip install -r requirements.lock
+    playwright install chrome               # skip if Google Chrome is installed
+    sudo apt-mark hold google-chrome-stable # keep Chrome's version fixed during the study
 
-## Setup (once)
+Keys:
 
-    pip install -r requirements.txt
-    playwright install chrome              # skip if Google Chrome is already installed
+    export YT_API_KEY=...       # YouTube Data API v3 key (Google Cloud console)
+    export GEMINI_API_KEY=...   # Google AI Studio key
 
-Get a YouTube Data API v3 key (Google Cloud console) and set it:
+In `config.yaml`, set the following from what your AI Studio project shows:
+- `classifier.model` and `labeler.model`: a Flash-Lite or Flash model ID
+- `classifier.rpm` and `classifier.rpd`: your project's requests per minute and per day
 
-    export YT_API_KEY=...                  # Windows: set YT_API_KEY=...
+Rate limits are per project. Treatment pairs run at once only as far as the RPM allows.
+Any item Gemini can't decide in time falls back to keywords, and this is logged.
 
-Without a key, the harness falls back to titles only, which makes treatment triggering weaker.
+**Accounts.** `acct01` and `acct02` are pilot accounts (they already have dry-run history).
+Add your fresh study accounts to `accounts.yaml` as `role: study`, with persona fields that
+are identical across accounts. Then sign each one in by hand:
 
-**Accounts.** Edit `accounts.yaml` to match your accounts, then sign each in by hand:
+    python login.py acct03          # sign in in the window; records the account's identity
+    python login.py --check         # every account: signed in, identity ok, history on
+    python assign_groups.py         # seeded pairs; random treatment/control within each pair
 
-    python login.py acct01                 # repeat for every account
-    python login.py --check                # all should say signed_in=True
-
-If Google refuses the sign-in in this window, close it and open real Chrome yourself with
-`--user-data-dir=<repo>/profiles/acct01`. Sign in there, close Chrome, and the harness
-will reuse that profile.
-
-After setup, never use these accounts by hand.
+After setup, never use the accounts by hand.
 
 ## Workflow
 
-**1. Dry run (feasibility + calibration).** Use two throwaway accounts, not study accounts:
+1. **Seed lists.** Run `python build_seeds.py` and open `data/seeds/review.html`. Tick about
+   10 Shorts per arm and export. Paste the two lists into `seeds/treatment.txt` and
+   `seeds/control.txt`.
+2. **Pilot** (pilot accounts only; writes to `data/dryrun/`):
 
-    python run_slot.py --phase treatment --session 1 --dry-run --mode treatment \
-        --accounts acct01,acct02 --n-items 15
+       python run_slot.py --session 4 --dry-run --n-items 20
+       python run_slot.py --session 3 --dry-run            # check the seed session too
 
-Check that items were collected, `playing` is near 1.0, and `meta` coverage is high.
-The printed long-dwell rate is your candidate for `policy.neutral_long_prob`. Run a few
-dry sessions, since the rate rises as treatment feeds shift.
+   Check the printed line and `data/dryrun/*/_session_log.jsonl`:
+   - `active_video_rate` ≈ 1
+   - `gemini_rate` ≥ 0.9
+   - `muted_rate` = 0
+   - `frames_rate` > 0
+   - ads detected (`ads`)
+   - no `flags`
 
-**2. Freeze.** Set `neutral_long_prob`, finalize the keyword files, note the `policy_fp`
-printed on the next run, and pre-register.
+   If `active_video_rate` drops, YouTube changed its front end: see `audit/dom.py`.
+3. **Freeze.** Copy the printed `policy_fp` into `config.yaml: preregistered_fp`, fill in
+   `docs/preregistration.md`, and register it with your supervisor (date-stamped).
+4. **Collect.** Run one session per slot, at least `min_gap_hours` apart:
 
-**3. Assign groups** (once; seeded and balanced):
+       python run_slot.py --session 1
+       ...
+       python run_slot.py --session 11
+       python protocol_status.py                     # what has run, what failed
 
-    python assign_groups.py
+   If a session fails, re-run **the whole pair** and give a reason, which is written to
+   `data/lab_log.jsonl`:
 
-**4. Collect.** Run two slots per day, with sessions numbered continuously:
+       python run_slot.py --session 5 --force --accounts acct03,acct04 --reason "Chrome crashed"
 
-    python run_slot.py --phase baseline  --session 1    # day 1 (sessions 1-2)
-    python run_slot.py --phase treatment --session 3    # days 2-5 (sessions 3-10)
-    python run_slot.py --phase washout   --session 11   # days 6-7 (sessions 11-14)
+5. **Label and validate.**
 
-Keep windows open, not minimized, since minimized windows can pause playback. Covering
-them with other windows is fine. Keep a lab log of anything unusual (crashes, re-runs
-with `--force`, CAPTCHAs).
+       python label_items.py                         # Gemini outcome labels (resumable)
+       python make_label_sample.py                   # ~150 items -> data/labels/label.html
+       # Two people label in label.html; save their downloads in data/labels/human/
+       python validate_labels.py                     # kappa, adjudication.csv, accuracy
+       # Fill the gold column of data/labels/adjudication.csv together, then re-run
+
+6. **Report.** Run `python analyze.py`, which writes `reports/mvp_report.html`. It contains
+   the drift curves, the per-pair difference-in-differences, the validity check, the dose
+   check and collection quality.
 
 ## Output
 
-`data/raw/<phase>_sNN/<account>.jsonl` has one row per feed item:
-- account, group, mode, phase, session, and position
-- arrival time and video ID
-- title, channel, tags, and duration
-- the policy decision and matched term
-- planned and actual dwell
-- whether the video was playing
-- `policy_fp`
+`data/raw/<phase>_sNN/<account>.jsonl` has one row per item shown. Fields:
 
-`_session_log.jsonl` in each slot folder has one row per account per slot: status
-(`ok`, `not_signed_in`, `signed_out`, `blocked`, `stuck`, `no_feed`, or `error`) and
-summary rates.
+- **Identity:** account, pair, group, mode, phase, session, attempt
+- **Position:** `position` and `organic_index` (`organic_index` excludes ads; it is the
+  yoke index)
+- **Metadata:** video ID, title, channel, tags, duration (metadata and player), category,
+  audio language, `meta_source`
+- **Ads:** `is_ad`, `ad_signal`
+- **Trigger:** `trigger_label`, `trigger_source`, `trigger_latency_s`, `kw_adjacent`, `kw_exclude`
+- **Yoke:** `partner_long`, `yoke_wait_s`
+- **Decision:** `long`, `reason`, `planned_dwell_s`
+- **Player:** `start_delay_s`, `dwell_s`, `watched_s`, `loops`, `playing_frac`,
+  `active_video_frac`, `muted`, `volume`
+- **Warnings:** `interstitial`, `interstitial_snippet`
+- **Navigation:** `left_early`, `advance_attempts`, `exposure_s`
+- **Labeling:** `frames_saved`
+- **Fingerprint:** `policy_fp`
 
-`data/meta_cache.jsonl` holds full metadata, including descriptions, for later labeling.
+`_session_log.jsonl` in each slot holds one row per account per attempt:
+- status: `ok`, `not_signed_in`, `signed_out`, `wrong_account`, `history_off`, `blocked`,
+  `stuck`, `no_feed`, `partner_aborted`, `ad_flood`, `interrupted` or `error`
+- summary rates and quality `flags`
+- the git commit and the Chrome, Playwright and Python versions
 
-## Security
+Other output:
+- `data/meta_cache.jsonl`: full metadata
+- `data/trigger_cache.jsonl`: live trigger verdicts
+- `data/media/`: thumbnails and two player frames per video, captured because flagged
+  videos are often removed before labeling
 
-`profiles/` contains live Google session cookies. It is git-ignored; never share it.
-The same goes for `data/`, which contains harmful-content metadata.
+## Tests
 
-## Known limitations
+    venv/bin/python -m pytest -q
 
-These belong in your threats-to-validity section:
+No network or browser needed. The tests cover:
+- the policy and the symmetric exclusion rule
+- yoking, including what happens when a partner aborts
+- the session loop, against a scripted fake browser on a virtual clock
+- classifier fallbacks
+- fingerprint stability
+- protocol order, re-run and cancellation rules
+- the metrics, and the full analysis on synthetic data with a planted effect
 
-- All accounts share one IP address and may be linked by the platform.
-- Sponsored items are skipped and not logged.
-- Watch-time matching between groups is approximate, because the treatment trigger rate
-  changes as the feed shifts. Report total watch time per group.
-- YouTube changes its front end often. The harness relies only on the `/shorts/<id>` URL
-  and keyboard navigation to minimize breakage.
+## Security and ethics
+
+`profiles/` contains live Google session cookies. `data/` and `reports/` contain
+harmful-content metadata and imagery. All three are git-ignored; never share them. See
+`docs/ETHICS.md` and `docs/threats_to_validity.md`.

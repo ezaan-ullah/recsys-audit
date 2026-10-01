@@ -27,7 +27,8 @@ def parse_iso_duration(s: str | None) -> float | None:
 
 def _empty(video_id: str) -> dict:
     return {"video_id": video_id, "title": None, "description": None, "tags": [],
-            "channel_id": None, "channel_title": None, "duration_s": None, "source": "none"}
+            "channel_id": None, "channel_title": None, "duration_s": None, "category_id": None,
+            "audio_language": None, "source": "none"}
 
 
 class MetadataClient:
@@ -98,6 +99,8 @@ class MetadataClient:
             "channel_id": sn.get("channelId"),
             "channel_title": sn.get("channelTitle"),
             "duration_s": parse_iso_duration(cd.get("duration")),
+            "category_id": sn.get("categoryId"),
+            "audio_language": sn.get("defaultAudioLanguage") or sn.get("defaultLanguage"),
             "source": "data_api",
         }
 

@@ -1,0 +1,5 @@
+# SEED LIST (control arm). One YouTube Short video ID per line; text after the ID is ignored.
+# Watched to completion, by direct URL, in session 3 (phase: seed) by every control account.
+# Must be neutral (no sadness or mental-health theme), duration-matched to the treatment list line by line.
+# Build candidates with build_seeds.py, review them, then paste the chosen IDs here.
+# Both lists must have the same length. Parsed IDs are part of the protocol fingerprint.

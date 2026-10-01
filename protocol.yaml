@@ -1,0 +1,20 @@
+# Session schedule (compressed MVP, ~4 days at 3 slots/day).
+# run_slot.py derives the phase from the session number and enforces the order.
+# To scale up, add sessions here; numbering must stay 1..N.
+#   baseline : both arms, content-blind schedule shared within the pair
+#   seed     : treatment watches seeds/treatment.txt, control watches seeds/control.txt
+#   treatment: treatment lingers on adjacent items; control is yoked to its partner
+#   washout  : as baseline
+min_gap_hours: 3
+sessions:
+  - {n: 1,  phase: baseline}
+  - {n: 2,  phase: baseline}
+  - {n: 3,  phase: seed}
+  - {n: 4,  phase: treatment}
+  - {n: 5,  phase: treatment}
+  - {n: 6,  phase: treatment}
+  - {n: 7,  phase: treatment}
+  - {n: 8,  phase: treatment}
+  - {n: 9,  phase: treatment}
+  - {n: 10, phase: washout}
+  - {n: 11, phase: washout}

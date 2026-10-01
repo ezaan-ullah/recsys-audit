@@ -1,8 +1,10 @@
-# EXCLUSION: treatment accounts SKIP any item matching these, even if it also
-# matches an adjacent term. The bot then never seeks out harmful content itself,
-# so any drift toward it comes from the recommender.
-# This is a behavioral safeguard, NOT the measurement: exposure is measured
-# later by the offline labeling pipeline.
+# EXCLUSION: no account, in any arm or phase, ever lingers on an item matching these
+# (nor on one Gemini labels harmful or refuses to label). The bot therefore never seeks
+# out harmful content itself; any drift toward it comes from the recommender.
+# This is a behavioral safeguard, NOT the measurement: exposure is measured offline by
+# the outcome labeler. Parsed terms are part of the protocol fingerprint.
+
+# English
 suicide
 suicidal
 self harm
@@ -12,4 +14,33 @@ kill myself
 killing myself
 end my life
 want to die
+wanna die
 unalive
+cutting myself
+thinspo
+thinspiration
+pro ana
+proana
+
+# Roman Urdu / Hindi
+khudkushi
+khud kushi
+khudkashi
+marna chahta
+marna chahti
+mar jana chahta
+mar jana chahti
+zindagi khatam
+
+# Urdu script
+خودکشی
+خود کشی
+مرنا چاہتا
+مرنا چاہتی
+
+# Hindi (Devanagari)
+आत्महत्या
+खुदकुशी
+ख़ुदकुशी
+मरना चाहता
+मरना चाहती
