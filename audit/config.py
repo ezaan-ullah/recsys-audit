@@ -2,6 +2,7 @@
 import hashlib
 import importlib.metadata
 import json
+import os
 import platform
 import re
 import subprocess
@@ -16,7 +17,20 @@ FINGERPRINT_CODE = ("audit/policy.py", "audit/session.py", "audit/classifier.py"
                     "audit/gemini.py", "audit/dom.py", "audit/yoke.py")
 
 
+def load_dotenv(path: Path = ROOT / ".env") -> None:
+    """Set KEY=value lines from .env into os.environ; variables already exported win."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        s = line.strip()
+        if not s or s.startswith("#") or "=" not in s:
+            continue
+        key, value = s.removeprefix("export ").split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
 def load_config(path: str = "config.yaml") -> dict:
+    load_dotenv()
     with open(ROOT / path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 

@@ -5,7 +5,7 @@
 #   seed     : treatment watches seeds/treatment.txt, control watches seeds/control.txt
 #   treatment: treatment lingers on adjacent items; control is yoked to its partner
 #   washout  : as baseline
-min_gap_hours: 3
+min_gap_hours: 0.0
 sessions:
   - {n: 1,  phase: baseline}
   - {n: 2,  phase: baseline}

@@ -4,7 +4,7 @@
 
 # Set this to the policy_fp printed by the last pilot run, then pre-register it.
 # Real (non-dry) runs refuse to start until it matches.
-preregistered_fp: null
+preregistered_fp: 7666a9790a32
 
 study:
   seed: 20260927

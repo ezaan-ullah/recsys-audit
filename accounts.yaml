@@ -9,4 +9,6 @@
 #   - {id: acct03, role: study, pair: null, group: null, birth_year: 2000, gender: female, created: 2026-10-01, ui_language: en, datasync_id: null, history_reset_utc: null}
 accounts:
 - {id: acct01, role: pilot, pair: pilot, group: treatment, birth_year: null, gender: null, created: null, ui_language: en, datasync_id: 100134246305351991804||, history_reset_utc: null}
-- {id: acct02, role: pilot, pair: pilot, group: control, birth_year: null, gender: null, created: null, ui_language: en, datasync_id: null, history_reset_utc: null}
+- {id: acct02, role: pilot, pair: pilot, group: control, birth_year: null, gender: null, created: null, ui_language: en, datasync_id: 113100336479073997337||, history_reset_utc: null}
+- {id: acct03, role: study, pair: p1, group: treatment, birth_year: 2004, gender: male, created: 2026-10-01, ui_language: en, datasync_id: 100134246305351991804||, history_reset_utc: null}
+- {id: acct04, role: study, pair: p1, group: control, birth_year: 2004, gender: male, created: 2026-10-01, ui_language: en, datasync_id: 113100336479073997337||, history_reset_utc: null}

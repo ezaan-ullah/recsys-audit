@@ -44,14 +44,15 @@ content the accounts never lingered on.
 
 ## Setup
 
+    python -m venv venv && source venv/bin/activate   # run every script inside this venv (conda deactivate first)
     uv pip install -r requirements.lock     # or: pip install -r requirements.lock
     playwright install chrome               # skip if Google Chrome is installed
     sudo apt-mark hold google-chrome-stable # keep Chrome's version fixed during the study
 
-Keys:
+Keys go in `.env` (read automatically; variables already exported in the shell take precedence):
 
-    export YT_API_KEY=...       # YouTube Data API v3 key (Google Cloud console)
-    export GEMINI_API_KEY=...   # Google AI Studio key
+    YT_API_KEY=...       # YouTube Data API v3 key (Google Cloud console)
+    GEMINI_API_KEY=...   # Google AI Studio key
 
 In `config.yaml`, set the following from what your AI Studio project shows:
 - `classifier.model` and `labeler.model`: a Flash-Lite or Flash model ID
